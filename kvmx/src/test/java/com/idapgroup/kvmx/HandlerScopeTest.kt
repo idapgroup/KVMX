@@ -1,90 +1,54 @@
 package com.idapgroup.kvmx
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.errorFlow
-import androidx.lifecycle.handlerScope
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.test.*
+import androidx.lifecycle.errorEvents
+import androidx.lifecycle.errorHandlerScope
+import app.cash.turbine.test
+import junit.framework.TestCase.assertTrue
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import kotlin.random.Random
 
 @ExperimentalCoroutinesApi
 class HandlerScopeTest {
-    private val dispatcher = UnconfinedTestDispatcher()
-    private val viewModel = object : ViewModel() {}
+
+    @get:Rule
+    var mainCoroutineRule = MainCoroutineRule()
+
+    private lateinit var viewModel: TestViewModel
 
     @Before
     fun setup() {
-        Dispatchers.setMain(dispatcher)
+        viewModel = TestViewModel()
     }
 
     @Test
-    fun `job started`() {
-        val job = viewModel.handlerScope.launch { }
+    fun `job starts`() {
+        val job = viewModel.errorHandlerScope.launch { }
         assert(!job.start())
     }
 
     @Test
-    fun `synchronous job completes successfully`() = runTest {
-        var result = 0
-        viewModel.viewModelScope.launch {
-            result = 1 + 1
+    fun `job completes successfully`() = runTest {
+        viewModel.successfulTask()
+        viewModel.errorEvents.test {
+            expectNoEvents()
         }
-        delay(100)
-        assert(result == 2)
-    }
-
-    @Test
-    fun `asynchronous job completes successfully`() = runTest {
-        var result = 0
-        viewModel.viewModelScope.launch {
-            result = `successful asynchronous task`()
-        }
-        delay(200)
-        assert(result == 1)
-    }
-
-    @Test
-    fun `error emitted from synchronous job`() = runTest {
-        launch {
-            delay(100)
-            viewModel.handlerScope.launch {
-                throw Throwable()
-            }
-        }
-        assert(viewModel.errorFlow.firstOrNull() != null)
-    }
-
-    @Test
-    fun `error emitted from asynchronous job`() = runTest {
-        viewModel.handlerScope.launch {
-            `failing asynchronous task`()
-        }
-        assert(viewModel.errorFlow.firstOrNull() != null)
     }
 
     @Test
     fun `all errors emitted`() = runTest {
-        val times = 10
+        val times = 100
         repeat(times) {
-            viewModel.handlerScope.launch {
-                delay(Random.nextLong(100, 300))
-                throw Throwable()
-            }
+            viewModel.failingTask()
         }
-        assert(viewModel.errorFlow.take(times).toList().size == times)
-    }
-
-    private suspend fun `failing asynchronous task`(): Int {
-        delay(100)
-        throw Throwable()
-    }
-
-    private suspend fun `successful asynchronous task`(): Int {
-        delay(100)
-        return 1
+        viewModel.errorEvents.test {
+            repeat(times) {
+                assertTrue(awaitItem() is HandlerException)
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }

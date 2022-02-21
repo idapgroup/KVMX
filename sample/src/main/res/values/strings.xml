@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">sample</string>
+    <string name="start_success">Start successful task</string>
+    <string name="start_failure">Start failing task</string>
+    <string name="tag_change_error">Tag can not be changed</string>
+    <string name="tag_hint">Tag</string>
+    <string name="set_tag_button">Set tag</string>
+    <string name="get_tag_button">Get tag</string>
+</resources>

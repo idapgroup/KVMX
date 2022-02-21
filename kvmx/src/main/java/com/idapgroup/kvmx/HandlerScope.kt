@@ -15,9 +15,16 @@ private val ViewModel._errorFlow: MutableSharedFlow<Throwable>
         MutableSharedFlow(extraBufferCapacity = 1)
     )
 
-val ViewModel.errorFlow: SharedFlow<Throwable> get() = _errorFlow
+/**
+ * Flow for errors thrown from [errorHandlerScope].
+ */
+val ViewModel.errorEvents: SharedFlow<Throwable> get() = _errorFlow
 
-val ViewModel.handlerScope: CoroutineScope
+/**
+ * Scope that handles all [Exceptions][Throwable] by printing their stackTrace to console
+ * and emitting them to [errorEvents].
+ */
+val ViewModel.errorHandlerScope: CoroutineScope
     get() = getTag(JOB_KEY) ?: setTagIfAbsent(
         JOB_KEY,
         ClosableScope(SupervisorJob() + Dispatchers.Main.immediate + CoroutineExceptionHandler { _, error ->
