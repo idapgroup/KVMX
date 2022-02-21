@@ -13,6 +13,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "KVMX"
-include ':app'
 include ':kvmx'
 include ':sample'

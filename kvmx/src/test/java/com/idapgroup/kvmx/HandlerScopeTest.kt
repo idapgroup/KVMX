@@ -3,6 +3,7 @@ package com.idapgroup.kvmx
 import androidx.lifecycle.errorEvents
 import androidx.lifecycle.errorHandlerScope
 import app.cash.turbine.test
+import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -27,7 +28,7 @@ class HandlerScopeTest {
     @Test
     fun `job starts`() {
         val job = viewModel.errorHandlerScope.launch { }
-        assert(!job.start())
+        assertFalse(job.start())
     }
 
     @Test
