@@ -3,6 +3,7 @@ package com.idapgroup.kvmx
 import androidx.lifecycle.getTag
 import androidx.lifecycle.setTagIfAbsent
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNull
 import org.junit.Before
 import org.junit.Test
 
@@ -37,12 +38,12 @@ class ViewModelTagTest {
         val changedValue = "changed"
         viewModel.setTagIfAbsent(key, initialValue)
         viewModel.setTagIfAbsent(key, changedValue)
-        assert(viewModel.getTag<String>(key) == initialValue)
+        assertEquals(viewModel.getTag<String>(key), initialValue)
     }
 
     @Test
     fun `return null for tag that is not set yet`() {
         val key = "key"
-        assert(viewModel.getTag<Any>(key) == null)
+        assertNull(viewModel.getTag<Any>(key))
     }
 }
